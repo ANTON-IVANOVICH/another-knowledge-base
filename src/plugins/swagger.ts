@@ -1,43 +1,41 @@
 import fp from "fastify-plugin";
-import swagger from "@fastify/swagger";
-import swaggerUI from "@fastify/swagger-ui";
+import { FastifyInstance } from "fastify";
 
-export default fp(async (fastify) => {
-  await fastify.register(swagger, {
-    swagger: {
+export default fp(async (fastify: FastifyInstance) => {
+  await fastify.register(import("@fastify/swagger"), {
+    openapi: {
       info: {
-        title: "Another Knowledge Base API",
-        description: "API documentation for the Another Knowledge Base service",
+        title: "My API",
+        description: "API для статей и пользователей",
         version: "1.0.0",
       },
-      externalDocs: {
-        url: "https://github.com/ANTON-IVANOVICH/another-knowledge-base",
-        description: "GitHub repository",
-      },
-      //   host: "localhost:3000",
-      //   schemes: ["http"],
-      consumes: ["application/json"],
-      produces: ["application/json"],
-      securityDefinitions: {
-        bearerAuth: {
-          type: "apiKey",
-          name: "Authorization",
-          in: "header",
-          description:
-            'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
+      servers: [{ url: `http://localhost:${process.env.PORT || 3000}` }],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
         },
       },
       security: [{ bearerAuth: [] }],
     },
   });
 
-  await fastify.register(swaggerUI, {
+  await fastify.register(import("@fastify/swagger-ui"), {
     routePrefix: "/docs",
     uiConfig: {
-      docExpansion: "list",
-      deepLinking: false,
+      docExpansion: "full",
     },
-    staticCSP: true,
-    transformSpecificationClone: true,
+    // routePrefix: "/docs",
+    // uiConfig: {
+    //   docExpansion: "full",
+    //   deepLinking: false,
+    // },
+    // staticCSP: true,
+    // transformStaticCSP: (header) => header,
+    // Для сервера с SSL:
+    // hideUntagged: true,
   });
 });

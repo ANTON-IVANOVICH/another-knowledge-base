@@ -42,7 +42,7 @@ export class UserService {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: parseInt(process.env.JWT_EXPIRES_IN!, 10) }
+      { expiresIn: parseInt(process.env.JWT_EXPIRES_IN!) }
     );
 
     return {
@@ -66,6 +66,27 @@ export class UserService {
         role: true,
         createdAt: true,
       },
+    });
+  }
+
+  async getAllUsers() {
+    const data = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+    return {
+      data,
+    };
+  }
+
+  async deleteUser(id: string) {
+    return this.prisma.user.delete({
+      where: { id },
     });
   }
 }

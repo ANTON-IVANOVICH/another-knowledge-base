@@ -19,8 +19,7 @@ model User {
 }
 
 model Tags {
-  id   Int @id @default(autoincrement())
-  title String
+  title String @unique @id
   articles Article[]
 }
 

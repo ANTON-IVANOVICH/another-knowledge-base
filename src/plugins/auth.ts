@@ -1,11 +1,8 @@
 import fp from "fastify-plugin";
 import jwt from "@fastify/jwt";
-import { FastifyRequest, FastifyReply } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { FastifyRequest, FastifyReply, FastifyError } from "fastify";
 
 export default fp(async (fastify) => {
-  const prisma = new PrismaClient();
-
   await fastify.register(jwt, {
     secret: process.env.JWT_SECRET!,
   });
@@ -20,9 +17,13 @@ export default fp(async (fastify) => {
           throw new Error("Missing authentication token");
         }
 
-        const decoded = fastify.jwt.verify(token) as any;
+        const decoded = fastify.jwt.verify(token) as {
+          id: string;
+          email: string;
+          role: string;
+        };
 
-        const user = await prisma.user.findUnique({
+        const user = await fastify.prisma.user.findUnique({
           where: { id: decoded.id },
         });
 

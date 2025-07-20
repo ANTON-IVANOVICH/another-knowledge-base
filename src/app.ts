@@ -1,11 +1,11 @@
 import fastify from "fastify";
 import cors from "@fastify/cors";
 import prismaPlugin from "./plugins/prisma";
-import swaggerPlugin from "./plugins/swagger";
 import authPlugin from "./plugins/auth";
+import swaggerPlugin from "./plugins/swagger";
 import articleRoutes from "./routes/articles";
-import { initEnv } from "./env";
 import userRoutes from "./routes/users";
+import { initEnv } from "./env";
 initEnv();
 
 const server = fastify({
@@ -28,8 +28,31 @@ server.register(cors, {
 });
 
 server.register(prismaPlugin);
-server.register(swaggerPlugin);
 server.register(authPlugin);
+
+// server.setValidatorCompiler(({ schema }) => {
+//   console.log("COMPILING SCHEMA:", schema);
+//   return ajv.compile(schema);
+// });
+
+server.setErrorHandler((error, request, reply) => {
+  const statusCode = error.statusCode || 500;
+
+  if (error.validation) {
+    reply.status(400).send({
+      error: "Validation Error",
+      message: error.message,
+      details: error.validation,
+    });
+    return;
+  }
+
+  reply.status(statusCode).send({
+    error: error.name || "Internal Server Error",
+    message: error.message || "Something went wrong",
+    code: statusCode,
+  });
+});
 
 server.after(() => {
   server.get(
@@ -55,6 +78,11 @@ server.after(() => {
 server.register(articleRoutes, { prefix: "/api" });
 server.register(userRoutes, { prefix: "/api" });
 
+server.addHook("onSend", (request, reply, payload, done) => {
+  console.debug("RESPONSE PAYLOAD:", payload);
+  done(null, payload);
+});
+
 server.get("/users", async () => {
   return server.prisma.user.findMany();
 });
@@ -62,6 +90,8 @@ server.get("/users", async () => {
 server.get("/health", async () => {
   return { status: "OK", timestamp: new Date().toISOString() };
 });
+
+server.register(swaggerPlugin);
 
 const start = async () => {
   try {
