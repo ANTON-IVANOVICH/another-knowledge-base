@@ -24,7 +24,7 @@
 
 1. Регистрация пользователя: POST /api/users/signup
 2. Вход: POST /api/users/login
-3. Используйте вернувшийся JWT токен в Authorization заголовок:
+3. Вставьте вернувшийся JWT токен в Authorization заголовок:
 
 ### Эндпоинты
 
